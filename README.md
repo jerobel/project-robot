@@ -2,3 +2,7 @@
 
 # comment lancer le Robot; code; ...
 
+```
+python3 robot.py
+```
+
