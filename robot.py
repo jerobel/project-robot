@@ -9,10 +9,9 @@
 import openai
 import speech_recognition as sr
 import pyttsx3
+import os
 
-from keys import secret
-
-openai.api_key = secret
+openai.api_key = os.getenv("open_api_key")
 
 def capture_audio():
     recognizer = sr.Recognizer()
