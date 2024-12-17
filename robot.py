@@ -68,7 +68,7 @@ def capture_audio():
         print("\nDites quelque chose...")
         with sr.Microphone(device_index=device_index) as source:
             recognizer.adjust_for_ambient_noise(source, duration=1)  # Ajuster pour le bruit ambiant
-            audio = recognizer.listen(source)  # Écoute l'audio
+            audio = recognizer.listen(source, timeout=5)  # Timeout pour éviter le blocage
             print("Traitement de l'audio...")
             transcription = recognizer.recognize_google(audio, language='fr-FR')  # Reconnaissance
             print(f"Vous avez dit : {transcription}")
@@ -80,7 +80,7 @@ def capture_audio():
         print(f"Erreur de service de reconnaissance vocale : {e}")
         return None
     except Exception as e:
-        print(f"Erreur inconnue : {e}")
+        print(f"Erreur inconnue lors de la capture audio : {e}")
         return None
 
 # Fonction pour obtenir une réponse d'OpenAI
