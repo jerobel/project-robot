@@ -14,15 +14,11 @@ if not openai.api_key:
     print("Erreur : La clé API OpenAI n'est pas définie. Configurez-la dans les variables d'environnement ou dans le script.")
     exit()
 
-
-openai.api_key = os.getenv("open_api_key")
-
-
 # Fonction pour capturer l'audio via le microphone Jabra
 def capture_audio():
     recognizer = sr.Recognizer()
     try:
-        with sr.Microphone(device_index=1) as source:  # Assurez-vous que l'index du microphone Jabra est correct
+        with sr.Microphone(device_index=3) as source:  # Assurez-vous que l'index du microphone Jabra est correct (index 3 ici)
             print("Dites quelque chose...")
             time.sleep(1)  # Délai pour permettre à l'utilisateur de se préparer
             recognizer.adjust_for_ambient_noise(source, duration=1)
