@@ -3,28 +3,74 @@ import speech_recognition as sr
 import pyttsx3
 import os
 import time
+import requests
 from dotenv import load_dotenv
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Vérifiez que la clé API est définie
+# Vérifiez que la clé API OpenAI est définie
 if not openai.api_key:
-    print("Erreur : La clé API OpenAI n'est pas définie. Configurez-la dans les variables d'environnement ou dans le script.")
+    print("Erreur : La clé API OpenAI n'est pas définie. Configurez-la dans le fichier .env.")
     exit()
 
-# Fonction pour capturer l'audio via le microphone Jabra
+# Vérification de la connexion Internet
+def verifier_connexion_internet():
+    try:
+        requests.get("https://www.google.com", timeout=5)
+        return True
+    except requests.ConnectionError:
+        return False
+
+if not verifier_connexion_internet():
+    print("Erreur : Pas de connexion Internet. La reconnaissance vocale nécessite une connexion active.")
+    exit()
+
+# Fonction pour tester la synthèse vocale
+def tester_synthese_vocale():
+    try:
+        print("Test de la synthèse vocale...")
+        engine = pyttsx3.init()
+        engine.say("Test de la synthèse vocale réussi.")
+        engine.runAndWait()
+        print("Synthèse vocale : OK")
+    except Exception as e:
+        print(f"Erreur lors de la synthèse vocale : {e}")
+        exit()
+
+tester_synthese_vocale()
+
+# Vérification des périphériques audio disponibles
+print("\nListe des périphériques audio disponibles :")
+microphones = sr.Microphone.list_microphone_names()
+for index, name in enumerate(microphones):
+    print(f"{index}: {name}")
+
+# Demander à l'utilisateur d'entrer l'index du microphone Jabra
+device_index = None
+while device_index is None:
+    try:
+        choix = int(input("Entrez l'index du microphone Jabra (vérifiez la liste ci-dessus) : "))
+        if 0 <= choix < len(microphones):
+            device_index = choix
+        else:
+            print("Index invalide. Veuillez entrer un index correct.")
+    except ValueError:
+        print("Veuillez entrer un nombre valide.")
+
+print(f"Microphone sélectionné : {microphones[device_index]}")
+
+# Fonction pour capturer l'audio via le microphone
 def capture_audio():
     recognizer = sr.Recognizer()
     try:
-        print("Vérification des périphériques audio...")
-        with sr.Microphone(device_index=3) as source:  # Assurez-vous que l'index du microphone Jabra est correct
-            print("Dites quelque chose...")
-            recognizer.adjust_for_ambient_noise(source, duration=1)  # Ajustement pour le bruit ambiant
-            audio = recognizer.listen(source)
+        print("\nDites quelque chose...")
+        with sr.Microphone(device_index=device_index) as source:
+            recognizer.adjust_for_ambient_noise(source, duration=1)  # Ajuster pour le bruit ambiant
+            audio = recognizer.listen(source)  # Écoute l'audio
             print("Traitement de l'audio...")
-            transcription = recognizer.recognize_google(audio, language='fr-FR')
+            transcription = recognizer.recognize_google(audio, language='fr-FR')  # Reconnaissance
             print(f"Vous avez dit : {transcription}")
             return transcription
     except sr.UnknownValueError:
@@ -49,13 +95,12 @@ def obtenir_reponse(question):
             max_tokens=150,
             temperature=0.7
         )
-        # Récupération de la réponse dans le format correct
         return response['choices'][0]['message']['content'].strip()
     except Exception as e:
         print(f"Erreur lors de l'appel à OpenAI : {e}")
         return "Désolé, je n'ai pas pu obtenir de réponse."
 
-# Fonction pour faire parler l'IA via le haut-parleur Jabra
+# Fonction pour faire parler l'IA via le haut-parleur
 def parler_texte(texte):
     try:
         engine = pyttsx3.init()
@@ -66,11 +111,6 @@ def parler_texte(texte):
     except Exception as e:
         print(f"Erreur lors de la synthèse vocale : {e}")
 
-# Vérification des périphériques audio
-print("Liste des périphériques audio disponibles :")
-for index, name in enumerate(sr.Microphone.list_microphone_names()):
-    print(f"{index}: {name}")
-
 # Boucle principale
 while True:
     print("\n--- Début d'une nouvelle session ---")
@@ -79,6 +119,6 @@ while True:
         print(f"Question reçue : {question}")
         reponse = obtenir_reponse(question)
         print(f"Réponse de l'IA : {reponse}")
-        parler_texte(reponse)  # La réponse de l'IA est maintenant lue à haute voix
+        parler_texte(reponse)
     else:
-        print("Aucune question reçue, réessayez.")
+        print("Aucune question reçue. Veuillez réessayer.")
