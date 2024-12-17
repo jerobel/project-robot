@@ -1,76 +1,78 @@
-#!/usr/bin/env python3
-##
-## EPITECH PROJECT, 2024
-## projet robot epitech digital 
-## File description:
-## projet robot epitech digital
-##
-
 import openai
 import speech_recognition as sr
 import pyttsx3
 import os
+import time
+from dotenv import load_dotenv
 
-openai.api_key = os.getenv("open_api_key")
+# Charger les variables d'environnement depuis le fichier .env
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Vérifiez que la clé API est définie
+if not openai.api_key:
+    print("Erreur : La clé API OpenAI n'est pas définie. Configurez-la dans les variables d'environnement ou dans le script.")
+    exit()
+
+# Fonction pour capturer l'audio via le microphone Jabra
 def capture_audio():
     recognizer = sr.Recognizer()
-
-    # Liste des périphériques audio disponibles
-    mic_list = sr.Microphone.list_microphone_names()
-    print("Microphones disponibles:", mic_list)
-
-    # Vous pouvez essayer d'identifier votre microphone en utilisant l'index correspondant à votre microphone
-    mic_index = None
-    for index, name in enumerate(mic_list):
-        if "nom_de_votre_microphone" in name:  # Remplacez par le nom de votre microphone
-            mic_index = index
-            break
-
-    if mic_index is not None:
-        with sr.Microphone(device_index=mic_index) as source:
+    try:
+        with sr.Microphone(device_index=1) as source:  # Assurez-vous que l'index du microphone Jabra est correct
             print("Dites quelque chose...")
-            recognizer.adjust_for_ambient_noise(source)
+            time.sleep(1)  # Délai pour permettre à l'utilisateur de se préparer
+            recognizer.adjust_for_ambient_noise(source, duration=1)
             audio = recognizer.listen(source)
-        
-        try:
-            print("Vous avez dit : " + recognizer.recognize_google(audio))
-            return recognizer.recognize_google(audio)
-        except sr.UnknownValueError:
-            print("Je n'ai pas pu comprendre l'audio.")
-            return None
-        except sr.RequestError as e:
-            print(f"Erreur de service de reconnaissance vocale {e}")
-            return None
-    else:
-        print("Microphone non trouvé.")
+            print("Traitement de l'audio...")
+            transcription = recognizer.recognize_google(audio, language='fr-FR')
+            print(f"Vous avez dit : {transcription}")
+            return transcription
+    except sr.UnknownValueError:
+        print("Je n'ai pas pu comprendre l'audio.")
+        return None
+    except sr.RequestError as e:
+        print(f"Erreur de service de reconnaissance vocale : {e}")
+        return None
+    except Exception as e:
+        print(f"Erreur inconnue : {e}")
         return None
 
+# Fonction pour obtenir une réponse d'OpenAI
 def obtenir_reponse(question):
-    response = openai.Completion.create(
-        engine="gpt-4", 
-        prompt=question,
-        max_tokens=150
-    )
-    return response.choices[0].text.strip()
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Utilisation de GPT-4
+            messages=[
+                {"role": "system", "content": "Tu es un assistant utile."},
+                {"role": "user", "content": question}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        # Récupération de la réponse dans le format correct
+        return response['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        print(f"Erreur lors de l'appel à OpenAI : {e}")
+        return "Désolé, je n'ai pas pu obtenir de réponse."
 
+# Fonction pour faire parler l'IA via le haut-parleur Jabra
 def parler_texte(texte):
-    engine = pyttsx3.init()
+    try:
+        engine = pyttsx3.init()
+        engine.setProperty('rate', 150)  # Vitesse de la voix (optionnel)
+        engine.setProperty('volume', 1)  # Volume (optionnel)
+        engine.say(texte)
+        engine.runAndWait()
+    except Exception as e:
+        print(f"Erreur lors de la synthèse vocale : {e}")
 
-    # Liste des périphériques audio disponibles
-    audio_devices = engine.getProperty('audiooutput')
-    print("Périphériques audio disponibles:", audio_devices)
-    
-    # Remplacez 'index_pour_votre_haut_parleur' par l'index réel de votre périphérique Jabra
-    engine.setProperty('audiooutput', 'index_pour_votre_haut_parleur')
-
-    engine.say(texte)
-    engine.runAndWait()
-
+# Boucle principale
 while True:
     question = capture_audio()
     if question:
         print(f"Question reçue : {question}")
         reponse = obtenir_reponse(question)
         print(f"Réponse de l'IA : {reponse}")
-        parler_texte(reponse)
+        parler_texte(reponse)  # La réponse de l'IA est maintenant lue à haute voix
+    else:
+        print("Aucune question reçue, réessayez.")
