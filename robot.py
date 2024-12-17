@@ -2,7 +2,6 @@ import openai
 import speech_recognition as sr
 import pyttsx3
 import os
-<<<<<<< HEAD
 import time
 from dotenv import load_dotenv
 
@@ -14,10 +13,10 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     print("Erreur : La clé API OpenAI n'est pas définie. Configurez-la dans les variables d'environnement ou dans le script.")
     exit()
-=======
+
 
 openai.api_key = os.getenv("open_api_key")
->>>>>>> 7df3183af606220c08263a0eea7f37ee96899295
+
 
 # Fonction pour capturer l'audio via le microphone Jabra
 def capture_audio():
