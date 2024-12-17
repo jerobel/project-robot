@@ -18,10 +18,10 @@ if not openai.api_key:
 def capture_audio():
     recognizer = sr.Recognizer()
     try:
-        with sr.Microphone(device_index=3) as source:  # Assurez-vous que l'index du microphone Jabra est correct (index 3 ici)
+        print("Vérification des périphériques audio...")
+        with sr.Microphone(device_index=3) as source:  # Assurez-vous que l'index du microphone Jabra est correct
             print("Dites quelque chose...")
-            time.sleep(1)  # Délai pour permettre à l'utilisateur de se préparer
-            recognizer.adjust_for_ambient_noise(source, duration=1)
+            recognizer.adjust_for_ambient_noise(source, duration=1)  # Ajustement pour le bruit ambiant
             audio = recognizer.listen(source)
             print("Traitement de l'audio...")
             transcription = recognizer.recognize_google(audio, language='fr-FR')
@@ -59,15 +59,21 @@ def obtenir_reponse(question):
 def parler_texte(texte):
     try:
         engine = pyttsx3.init()
-        engine.setProperty('rate', 150)  # Vitesse de la voix (optionnel)
-        engine.setProperty('volume', 1)  # Volume (optionnel)
+        engine.setProperty('rate', 150)  # Vitesse de la voix
+        engine.setProperty('volume', 1)  # Volume
         engine.say(texte)
         engine.runAndWait()
     except Exception as e:
         print(f"Erreur lors de la synthèse vocale : {e}")
 
+# Vérification des périphériques audio
+print("Liste des périphériques audio disponibles :")
+for index, name in enumerate(sr.Microphone.list_microphone_names()):
+    print(f"{index}: {name}")
+
 # Boucle principale
 while True:
+    print("\n--- Début d'une nouvelle session ---")
     question = capture_audio()
     if question:
         print(f"Question reçue : {question}")
