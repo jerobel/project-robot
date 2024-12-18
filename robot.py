@@ -61,7 +61,7 @@ while device_index is None:
 
 print(f"Microphone sélectionné : {microphones[device_index]}")
 
-# Fonction pour capturer l'audio via le microphone
+# Fonction pour capturer l'audio via le microphone avec PyAudio
 def capture_audio():
     recognizer = sr.Recognizer()
     try:
