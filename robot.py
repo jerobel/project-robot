@@ -2,7 +2,6 @@ import openai
 import speech_recognition as sr
 import pyttsx3
 import os
-import time
 import requests
 from dotenv import load_dotenv
 
@@ -42,16 +41,17 @@ def tester_synthese_vocale():
 tester_synthese_vocale()
 
 # Vérification des périphériques audio disponibles
-print("\nListe des périphériques audio disponibles :")
+print("\nListe des périphériques audio disponibles (entrée et sortie) :")
 microphones = sr.Microphone.list_microphone_names()
+for index, name in enumerate(microphones):
+    print(f"{index}: {name}")
 
-# Vérifier s'il y a des microphones disponibles
-if len(microphones) == 0:
-    print("Aucun microphone trouvé. Veuillez connecter un microphone.")
+# Sélectionner le microphone Jabra à l'index 2
+device_index = 2  # Jabra microphone
+if device_index < 0 or device_index >= len(microphones):
+    print(f"Erreur : L'index {device_index} du microphone n'est pas valide.")
     exit()
 
-# Sélectionner automatiquement le premier microphone disponible
-device_index = 0  # Utilise le premier périphérique de la liste
 print(f"Microphone sélectionné : {microphones[device_index]}")
 
 # Fonction pour capturer l'audio via le microphone avec PyAudio
