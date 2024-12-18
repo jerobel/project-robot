@@ -5,6 +5,11 @@ import os
 import requests
 from dotenv import load_dotenv
 
+# Rediriger les erreurs ALSA et configurer le backend audio
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
+os.environ["ALSA_LIB_DEBUG"] = "0"
+os.environ["SDL_AUDIODRIVER"] = "pulse"
+
 # Charger les variables d'environnement
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -56,7 +61,7 @@ device_index = selectionner_microphone()
 def tester_synthese_vocale():
     try:
         print("Test de la synthèse vocale...")
-        engine = pyttsx3.init()
+        engine = pyttsx3.init(driverName='espeak')  # Force l'utilisation d'eSpeak
         engine.say("Test de la synthèse vocale réussi.")
         engine.runAndWait()
         engine.stop()
@@ -109,7 +114,7 @@ def obtenir_reponse(question):
 # Fonction pour faire parler l'IA via le haut-parleur
 def parler_texte(texte):
     try:
-        engine = pyttsx3.init()
+        engine = pyttsx3.init(driverName='espeak')  # Utilise eSpeak pour éviter les conflits audio
         engine.setProperty('rate', 150)
         engine.setProperty('volume', 1)
         engine.say(texte)
