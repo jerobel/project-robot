@@ -44,21 +44,14 @@ tester_synthese_vocale()
 # Vérification des périphériques audio disponibles
 print("\nListe des périphériques audio disponibles :")
 microphones = sr.Microphone.list_microphone_names()
-for index, name in enumerate(microphones):
-    print(f"{index}: {name}")
 
-# Demander à l'utilisateur d'entrer l'index du microphone
-device_index = None
-while device_index is None:
-    try:
-        choix = int(input("Entrez l'index du microphone (vérifiez la liste ci-dessus) : "))
-        if 0 <= choix < len(microphones):
-            device_index = choix
-        else:
-            print("Index invalide. Veuillez entrer un index correct.")
-    except ValueError:
-        print("Veuillez entrer un nombre valide.")
+# Vérifier s'il y a des microphones disponibles
+if len(microphones) == 0:
+    print("Aucun microphone trouvé. Veuillez connecter un microphone.")
+    exit()
 
+# Sélectionner automatiquement le premier microphone disponible
+device_index = 0  # Utilise le premier périphérique de la liste
 print(f"Microphone sélectionné : {microphones[device_index]}")
 
 # Fonction pour capturer l'audio via le microphone avec PyAudio
