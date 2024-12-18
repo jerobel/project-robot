@@ -47,11 +47,11 @@ microphones = sr.Microphone.list_microphone_names()
 for index, name in enumerate(microphones):
     print(f"{index}: {name}")
 
-# Demander à l'utilisateur d'entrer l'index du microphone Jabra
+# Demander à l'utilisateur d'entrer l'index du microphone
 device_index = None
 while device_index is None:
     try:
-        choix = int(input("Entrez l'index du microphone Jabra (vérifiez la liste ci-dessus) : "))
+        choix = int(input("Entrez l'index du microphone (vérifiez la liste ci-dessus) : "))
         if 0 <= choix < len(microphones):
             device_index = choix
         else:
