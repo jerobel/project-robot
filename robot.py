@@ -85,13 +85,16 @@ def obtenir_reponse(question):
     try:
         import openai
         openai.api_key = openai_api_key
-        response = openai.Completion.create(  # Mise à jour ici avec Completion.create
+        response = openai.ChatCompletion.create(  # Utilisation de la méthode correcte
             model="gpt-4",  # Utilisation de GPT-4
-            prompt=question,  # Utilisation du prompt direct
+            messages=[ 
+                {"role": "system", "content": "Tu es un assistant utile."},
+                {"role": "user", "content": question}
+            ],
             max_tokens=150,
             temperature=0.7
         )
-        return response['choices'][0]['text'].strip()  # Récupérer la réponse dans le champ 'text'
+        return response['choices'][0]['message']['content'].strip()  # Utilisation du bon champ pour la réponse
     except Exception as e:
         print(f"Erreur lors de l'appel à OpenAI : {e}")
         return "Désolé, je n'ai pas pu obtenir de réponse."
