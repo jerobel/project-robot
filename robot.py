@@ -2,11 +2,10 @@ import openai
 import speech_recognition as sr
 import pyttsx3
 import os
-import time
 import requests
 from dotenv import load_dotenv
 
-# Charger les variables d'environnement depuis le fichier .env
+# Charger les variables d'environnement
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -27,6 +26,32 @@ if not verifier_connexion_internet():
     print("Erreur : Pas de connexion Internet. La reconnaissance vocale nécessite une connexion active.")
     exit()
 
+# Fonction pour afficher la liste des microphones disponibles
+def afficher_peripheriques_audio():
+    print("\nListe des périphériques audio disponibles :")
+    microphones = sr.Microphone.list_microphone_names()
+    for index, name in enumerate(microphones):
+        print(f"{index}: {name}")
+    return microphones
+
+# Sélectionner le microphone Jabra
+def selectionner_microphone():
+    microphones = afficher_peripheriques_audio()
+    device_index = None
+    while device_index is None:
+        try:
+            choix = int(input("Entrez l'index du microphone Jabra (vérifiez la liste ci-dessus) : "))
+            if 0 <= choix < len(microphones):
+                device_index = choix
+            else:
+                print("Index invalide. Veuillez entrer un index correct.")
+        except ValueError:
+            print("Veuillez entrer un nombre valide.")
+    print(f"Microphone sélectionné : {microphones[device_index]}")
+    return device_index
+
+device_index = selectionner_microphone()
+
 # Fonction pour tester la synthèse vocale
 def tester_synthese_vocale():
     try:
@@ -34,32 +59,13 @@ def tester_synthese_vocale():
         engine = pyttsx3.init()
         engine.say("Test de la synthèse vocale réussi.")
         engine.runAndWait()
+        engine.stop()
         print("Synthèse vocale : OK")
     except Exception as e:
         print(f"Erreur lors de la synthèse vocale : {e}")
         exit()
 
 tester_synthese_vocale()
-
-# Vérification des périphériques audio disponibles
-print("\nListe des périphériques audio disponibles :")
-microphones = sr.Microphone.list_microphone_names()
-for index, name in enumerate(microphones):
-    print(f"{index}: {name}")
-
-# Demander à l'utilisateur d'entrer l'index du microphone Jabra
-device_index = None
-while device_index is None:
-    try:
-        choix = int(input("Entrez l'index du microphone Jabra (vérifiez la liste ci-dessus) : "))
-        if 0 <= choix < len(microphones):
-            device_index = choix
-        else:
-            print("Index invalide. Veuillez entrer un index correct.")
-    except ValueError:
-        print("Veuillez entrer un nombre valide.")
-
-print(f"Microphone sélectionné : {microphones[device_index]}")
 
 # Fonction pour capturer l'audio via le microphone
 def capture_audio():
@@ -87,7 +93,7 @@ def capture_audio():
 def obtenir_reponse(question):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # Utilisation de GPT-4
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "Tu es un assistant utile."},
                 {"role": "user", "content": question}
@@ -104,8 +110,8 @@ def obtenir_reponse(question):
 def parler_texte(texte):
     try:
         engine = pyttsx3.init()
-        engine.setProperty('rate', 150)  # Vitesse de la voix
-        engine.setProperty('volume', 1)  # Volume
+        engine.setProperty('rate', 150)
+        engine.setProperty('volume', 1)
         engine.say(texte)
         engine.runAndWait()
     except Exception as e:
