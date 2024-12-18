@@ -27,13 +27,11 @@ if not verifier_connexion_internet():
     print("Erreur : Pas de connexion Internet. La reconnaissance vocale nécessite une connexion active.")
     exit()
 
-# Initialisation globale pour la synthèse vocale
-engine = pyttsx3.init()
-
 # Fonction pour tester la synthèse vocale
 def tester_synthese_vocale():
     try:
         print("Test de la synthèse vocale...")
+        engine = pyttsx3.init()
         engine.say("Test de la synthèse vocale réussi.")
         engine.runAndWait()
         print("Synthèse vocale : OK")
@@ -49,18 +47,19 @@ microphones = sr.Microphone.list_microphone_names()
 for index, name in enumerate(microphones):
     print(f"{index}: {name}")
 
-# Sélection automatique du microphone Jabra
+# Demander à l'utilisateur d'entrer l'index du microphone Jabra
 device_index = None
-for index, name in enumerate(microphones):
-    if "Jabra" in name:
-        device_index = index
-        break
+while device_index is None:
+    try:
+        choix = int(input("Entrez l'index du microphone Jabra (vérifiez la liste ci-dessus) : "))
+        if 0 <= choix < len(microphones):
+            device_index = choix
+        else:
+            print("Index invalide. Veuillez entrer un index correct.")
+    except ValueError:
+        print("Veuillez entrer un nombre valide.")
 
-if device_index is None:
-    print("Erreur : Aucun microphone Jabra trouvé. Vérifiez vos connexions.")
-    exit()
-
-print(f"Microphone Jabra sélectionné automatiquement : {microphones[device_index]}")
+print(f"Microphone sélectionné : {microphones[device_index]}")
 
 # Fonction pour capturer l'audio via le microphone
 def capture_audio():
@@ -68,18 +67,17 @@ def capture_audio():
     try:
         print("\nDites quelque chose...")
         with sr.Microphone(device_index=device_index) as source:
-            recognizer.adjust_for_ambient_noise(source, duration=1)  # Ajustement pour le bruit
-            print("Écoute en cours...")
-            audio = recognizer.listen(source, timeout=5)  # Timeout pour éviter un blocage
+            recognizer.adjust_for_ambient_noise(source, duration=1)  # Ajuster pour le bruit ambiant
+            audio = recognizer.listen(source, timeout=5)  # Timeout pour éviter le blocage
             print("Traitement de l'audio...")
             transcription = recognizer.recognize_google(audio, language='fr-FR')  # Reconnaissance
             print(f"Vous avez dit : {transcription}")
             return transcription
     except sr.UnknownValueError:
-        print("Je n'ai pas compris l'audio.")
+        print("Je n'ai pas pu comprendre l'audio.")
         return None
     except sr.RequestError as e:
-        print(f"Erreur du service de reconnaissance vocale : {e}")
+        print(f"Erreur de service de reconnaissance vocale : {e}")
         return None
     except Exception as e:
         print(f"Erreur inconnue lors de la capture audio : {e}")
@@ -90,7 +88,7 @@ def obtenir_reponse(question):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4",  # Utilisation de GPT-4
-            messages=[
+            messages=[ 
                 {"role": "system", "content": "Tu es un assistant utile."},
                 {"role": "user", "content": question}
             ],
@@ -105,7 +103,7 @@ def obtenir_reponse(question):
 # Fonction pour faire parler l'IA via le haut-parleur
 def parler_texte(texte):
     try:
-        global engine
+        engine = pyttsx3.init()
         engine.setProperty('rate', 150)  # Vitesse de la voix
         engine.setProperty('volume', 1)  # Volume
         engine.say(texte)
